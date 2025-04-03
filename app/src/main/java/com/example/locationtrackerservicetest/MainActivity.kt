@@ -75,18 +75,26 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private lateinit var geofenceStatusText: TextView
+    private lateinit var addGeofenceButton: Button
+    private lateinit var clearGeofenceButton: Button
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         // Initialize views
         locationText = findViewById(R.id.locationText)
+        geofenceStatusText = findViewById(R.id.geofenceStatusText)
         startButton = findViewById(R.id.startButton)
         stopButton = findViewById(R.id.stopButton)
+        addGeofenceButton = findViewById(R.id.addGeofenceButton)
+        clearGeofenceButton = findViewById(R.id.clearGeofenceButton)
 
         setupButtons()
         checkLocationPermission()
         observeLocation()
+        observeGeofenceStatus()
     }
 
     private fun setupButtons() {
@@ -102,6 +110,23 @@ class MainActivity : AppCompatActivity() {
         stopButton.setOnClickListener {
             stopLocationService()
             viewModel.stopLocationTracking()
+            viewModel.removeGeofence()
+        }
+
+        addGeofenceButton.setOnClickListener {
+            viewModel.addCurrentLocationGeofence()
+            Toast.makeText(this, "Geofence added at current location", Toast.LENGTH_SHORT).show()
+        }
+
+        clearGeofenceButton.setOnClickListener {
+            viewModel.removeGeofence()
+            Toast.makeText(this, "Geofence cleared", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun observeGeofenceStatus() {
+        viewModel.isInsideGeofence.observe(this) { isInside ->
+            geofenceStatusText.text = if (isInside == null) "Geofence Status: Not active" else "Geofence Status: ${if (isInside) "Inside" else "Outside"}"
         }
     }
 

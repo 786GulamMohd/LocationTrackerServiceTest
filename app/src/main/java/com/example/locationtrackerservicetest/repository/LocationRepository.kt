@@ -19,6 +19,7 @@ import kotlinx.coroutines.tasks.await
 class LocationRepository private constructor(private val context: Context) {
 
     companion object {
+        private const val TAG = "LocationRepository"
         @Volatile
         private var instance: LocationRepository? = null
 
@@ -43,6 +44,7 @@ class LocationRepository private constructor(private val context: Context) {
         expirationDurationMillis: Long = Geofence.NEVER_EXPIRE
     ) {
         try {
+            Log.i("LocationRepository", "Adding geofence at location: ($latitude, $longitude) with radius: $radiusInMeters meters")
             val geofence = Geofence.Builder()
                 .setRequestId("GEOFENCE_ID")
                 .setCircularRegion(latitude, longitude, radiusInMeters)
@@ -52,9 +54,11 @@ class LocationRepository private constructor(private val context: Context) {
                 .build()
 
             val geofencingRequest = GeofencingRequest.Builder()
-                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER or GeofencingRequest.INITIAL_TRIGGER_EXIT)
                 .addGeofence(geofence)
                 .build()
+            
+            Log.d(TAG, "Creating geofence request with initial triggers: ENTER and EXIT")
 
             val pendingIntent = PendingIntent.getBroadcast(
                 context,
@@ -66,6 +70,8 @@ class LocationRepository private constructor(private val context: Context) {
             _geofenceStatusFlow.value = GeofenceStatus.Adding
             geofencingClient.addGeofences(geofencingRequest, pendingIntent).await()
             _geofenceStatusFlow.value = GeofenceStatus.Active
+            Log.i("LocationRepository", "Geofence successfully added at ($latitude, $longitude)")
+
         } catch (e: SecurityException) {
             Log.e("LocationRepository", "Security exception: ${e.message}")
             _geofenceStatusFlow.value = GeofenceStatus.Error(e.message ?: "Permission denied")
@@ -104,6 +110,7 @@ class LocationRepository private constructor(private val context: Context) {
                 )
             ).await()
             _geofenceStatusFlow.value = GeofenceStatus.Removed
+            Log.i("LocationRepository", "Geofence successfully removed")
         } catch (e: SecurityException) {
             Log.e("LocationRepository", "Security exception: ${e.message}")
             _geofenceStatusFlow.value = GeofenceStatus.Error(e.message ?: "Permission denied")

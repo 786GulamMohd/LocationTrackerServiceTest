@@ -5,7 +5,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
-import android.os.Build
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
@@ -29,8 +28,6 @@ class LocationService : Service() {
     private lateinit var locationCallback: LocationCallback
     private lateinit var repository: LocationRepository
     private val serviceScope = CoroutineScope(Dispatchers.Default)
-    //private val _locationFlow = MutableSharedFlow<android.location.Location>()
-    //val locationFlow = _locationFlow.asSharedFlow()
 
     companion object {
         private const val NOTIFICATION_CHANNEL_ID = "location_service_channel"
@@ -52,7 +49,6 @@ class LocationService : Service() {
             override fun onLocationResult(locationResult: LocationResult) {
                 locationResult.lastLocation?.let { location ->
                     serviceScope.launch {
-                        //_locationFlow.emit(location)
                         repository.updateLocation(location)
                     }
                 }
@@ -88,15 +84,13 @@ class LocationService : Service() {
     }
 
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                NOTIFICATION_CHANNEL_ID,
-                "Location Service",
-                NotificationManager.IMPORTANCE_DEFAULT
-            )
-            val notificationManager = getSystemService(NotificationManager::class.java)
-            notificationManager.createNotificationChannel(channel)
-        }
+        val channel = NotificationChannel(
+            NOTIFICATION_CHANNEL_ID,
+            "Location Service",
+            NotificationManager.IMPORTANCE_DEFAULT
+        )
+        val notificationManager = getSystemService(NotificationManager::class.java)
+        notificationManager.createNotificationChannel(channel)
     }
 
     private fun createNotification() = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
