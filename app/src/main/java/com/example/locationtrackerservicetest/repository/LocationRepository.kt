@@ -49,7 +49,7 @@ class LocationRepository private constructor(private val context: Context) {
                 .setRequestId("GEOFENCE_ID")
                 .setCircularRegion(latitude, longitude, radiusInMeters)
                 .setExpirationDuration(expirationDurationMillis)
-                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
+                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT or Geofence.GEOFENCE_TRANSITION_DWELL)
                 .setLoiteringDelay(30000) // 30 seconds delay for better accuracy
                 .build()
 
